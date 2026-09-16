@@ -8,45 +8,92 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
   <title>Paroliere Italiano</title>
   <style>
+    @import "tailwindcss";
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;900&family=Manrope:wght@500;700;800&display=swap');
+
+    :root {
+      --ink: #063a2b;
+    }
+
+    body {
+      font-family: 'Manrope', sans-serif;
+    }
+
+    .display {
+      font-family: 'Fraunces', serif;
+    }
+
     .glass-text {
-      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      text-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .card {
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04));
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .word-chip {
+      background: rgba(6, 58, 43, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .divider {
+      background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.35), transparent);
     }
   </style>
 </head>
 
 <body
-  class="w-full min-h-screen flex flex-row justify-center items-center bg-gradient-to-br from-emerald-400 to-emerald-900 p-4">
+  class="w-full min-h-screen bg-gradient-to-br from-emerald-400 via-emerald-600 to-emerald-950 flex items-center justify-center p-6">
 
-  <!-- DEL GIORNO -->
-  <div class="flex flex-col gap-y-3">
+  <div class="w-full max-w-5xl flex flex-col lg:flex-row items-stretch gap-0 rounded-[2rem] overflow-hidden shadow-2xl">
 
-  </div>
-
-  <!-- RANDOMIZZATORE -->
-  <div
-    class="w-full max-w-md sm:max-w-lg md:max-w-2xl flex flex-col gap-y-6 sm:gap-y-8 justify-center items-center bg-white/10 backdrop-blur-md px-6 py-8 sm:px-10 sm:py-10 md:px-12 rounded-3xl shadow-2xl border border-white/20 transition-all duration-300">
-
-    <h1
-      class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight glass-text text-center transition-all duration-300">
-      Bestemmiatore
-    </h1>
-
-    <div
-      class="w-full flex flex-col sm:flex-row gap-y-3 sm:gap-y-0 items-center justify-center gap-x-4 transition-all duration-300">
-      <h2 id="soggetto"
-        class="w-full sm:w-auto text-2xl sm:text-3xl md:text-4xl font-semibold text-white bg-black/20 px-4 py-3 sm:px-6 rounded-xl sm:min-w-[160px] text-center transition-all duration-300">
-        Benvenuto
-      </h2>
-      <h2 id="elemento"
-        class="w-full sm:w-auto text-2xl sm:text-3xl md:text-4xl font-semibold text-white bg-black/20 px-4 py-3 sm:px-6 rounded-xl sm:min-w-[160px] text-center transition-all duration-300">
-        Bestemmiatore
-      </h2>
+    <!-- DEL GIORNO -->
+    <div class="card flex-1 flex flex-col items-center justify-center gap-y-7 px-8 py-12 sm:px-12">
+      <span class="uppercase tracking-[0.2em] text-[11px] font-bold text-emerald-100/70">Oggi</span>
+      <h1 class="display text-3xl sm:text-4xl font-bold text-white text-center leading-tight glass-text">
+        Bestemmia del giorno
+      </h1>
+      <div class="w-full flex flex-col sm:flex-row items-center justify-center gap-3">
+        <h2 id="soggetto-giorno"
+          class="word-chip w-full sm:w-auto min-w-[140px] text-xl sm:text-2xl font-extrabold text-white px-5 py-3 rounded-2xl text-center">
+          &nbsp;
+        </h2>
+        <h2 id="elemento-giorno"
+          class="word-chip w-full sm:w-auto min-w-[140px] text-xl sm:text-2xl font-extrabold text-white px-5 py-3 rounded-2xl text-center">
+          &nbsp;
+        </h2>
+      </div>
+      <p class="text-emerald-100/60 text-xs text-center max-w-[220px]">La più bella bestemmia di Oggi</p>
     </div>
 
-    <button type="button" onclick="randomizza()"
-      class="bg-white text-emerald-800 font-bold text-base sm:text-lg px-6 py-3 sm:px-8 rounded-lg shadow-md hover:bg-emerald-100 hover:scale-105 active:scale-95 transition-all duration-200">
-      Randomizza
-    </button>
+    <!-- DIVIDER -->
+    <div class="hidden lg:block w-px divider"></div>
+    <div class="block lg:hidden h-px divider"></div>
+
+    <!-- RANDOMIZZATORE -->
+    <div class="card flex-1 flex flex-col items-center justify-center gap-y-7 px-8 py-12 sm:px-12">
+      <span class="uppercase tracking-[0.2em] text-[11px] font-bold text-emerald-100/70">A piacere</span>
+      <h1 id="titolo-random"
+        class="display text-3xl sm:text-4xl font-bold text-white text-center leading-tight glass-text">
+        Bestemmiatore
+      </h1>
+      <div class="w-full flex flex-col sm:flex-row items-center justify-center gap-3">
+        <h2 id="soggetto"
+          class="word-chip w-full sm:w-auto min-w-[140px] text-xl sm:text-2xl font-extrabold text-white px-5 py-3 rounded-2xl text-center">
+          Benvenuto
+        </h2>
+        <h2 id="elemento"
+          class="word-chip w-full sm:w-auto min-w-[140px] text-xl sm:text-2xl font-extrabold text-white px-5 py-3 rounded-2xl text-center">
+          Bestemmiatore
+        </h2>
+      </div>
+      <button type="button" onclick="randomizza()"
+        class="bg-white text-emerald-900 font-extrabold text-sm sm:text-base px-8 py-3 rounded-full shadow-lg hover:bg-emerald-50 hover:scale-105 active:scale-95 transition-all duration-200">
+        Randomizza
+      </button>
+    </div>
 
   </div>
 
@@ -54,62 +101,101 @@
     const soggetti = ["Dio", "Madonna", "Gesù"];
 
     const elementi = [
-  // Animali
-  "cane", "gatto", "cavallo", "mucca", "maiale", "pecora", "capra", "gallina", "gallo", "papera",
-  "anatra", "coniglio", "topo", "leone", "tigre", "elefante", "giraffa", "scimmia", "orso", "lupo",
-  "volpe", "cervo", "canguro", "zebra", "rinoceronte", "ippopotamo", "delfino", "balena", "squalo",
-  "pesce", "polpo", "granchio", "tartaruga", "serpente", "coccodrillo", "lucertola", "rana",
-  "farfalla", "ape", "formica", "ragno", "zanzara", "mosca", "scarafaggio", "uccello", "aquila",
-  "gufo", "pappagallo", "pinguino", "struzzo", "pipistrello", "castoro", "scoiattolo", "riccio",
-  "medusa", "fenicottero", "corvo", "piccione", "gabbiano", "cigno", "leopardo", "panda", "koala",
-  "camaleonte", "gorilla", "orca", "tricheco", "lince",
+      // Animali
+      "cane", "gatto", "cavallo", "mucca", "maiale", "pecora", "capra", "gallina", "gallo", "papera",
+      "anatra", "coniglio", "topo", "leone", "tigre", "elefante", "giraffa", "scimmia", "orso", "lupo",
+      "volpe", "cervo", "canguro", "zebra", "rinoceronte", "ippopotamo", "delfino", "balena", "squalo",
+      "pesce", "polpo", "granchio", "tartaruga", "serpente", "coccodrillo", "lucertola", "rana",
+      "farfalla", "ape", "formica", "ragno", "zanzara", "mosca", "scarafaggio", "uccello", "aquila",
+      "gufo", "pappagallo", "pinguino", "struzzo", "pipistrello", "castoro", "scoiattolo", "riccio",
+      "medusa", "fenicottero", "corvo", "piccione", "gabbiano", "cigno", "leopardo", "panda", "koala",
+      "camaleonte", "gorilla", "orca", "tricheco", "lince",
 
-  // Arredamento e Casa
-  "tavolo", "sedia", "divano", "letto", "armadio", "specchio", "lampada", "finestra", "porta",
-  "chiave", "orologio", "telefono", "computer", "libro", "penna", "matita", "quaderno", "zaino",
-  "ombrello", "cappello", "scarpa", "camicia", "pantaloni", "cintura", "guanto", "sciarpa", "borsa",
-  "valigia", "vasca", "lavandino", "cuscino", "coperta", "tappeto", "mensola", "vaso", "quadro",
-  "spazzolino", "asciugamano", "pettine", "sapone", "forbici", "martello", "cacciavite", "chiodo",
-  "torcia", "sveglia", "calzino", "giacca", "cappotto", "occhiali", "cravatta", "costume", "gonna",
+      // Arredamento e Casa
+      "tavolo", "sedia", "divano", "letto", "armadio", "specchio", "lampada", "finestra", "porta",
+      "chiave", "orologio", "telefono", "computer", "libro", "penna", "matita", "quaderno", "zaino",
+      "ombrello", "cappello", "scarpa", "camicia", "pantaloni", "cintura", "guanto", "sciarpa", "borsa",
+      "valigia", "vasca", "lavandino", "cuscino", "coperta", "tappeto", "mensola", "vaso", "quadro",
+      "spazzolino", "asciugamano", "pettine", "sapone", "forbici", "martello", "cacciavite", "chiodo",
+      "torcia", "sveglia", "calzino", "giacca", "cappotto", "occhiali", "cravatta", "costume", "gonna",
 
-  // Veicoli e Trasporti
-  "bicicletta", "automobile", "treno", "aereo", "nave", "barca", "camion", "moto", "autobus",
-  "elicottero", "razzo", "sottomarino", "tram", "trattore", "scooter", "funivia", "mongolfiera",
+      // Veicoli e Trasporti
+      "bicicletta", "automobile", "treno", "aereo", "nave", "barca", "camion", "moto", "autobus",
+      "elicottero", "razzo", "sottomarino", "tram", "trattore", "scooter", "funivia", "mongolfiera",
 
-  // Oggetti, Musica e Tecnologia
-  "pallone", "bambola", "aquilone", "chitarra", "pianoforte", "tamburo", "violino", "tromba",
-  "flauto", "radio", "televisione", "frigorifero", "forno", "pentola", "padella", "piatto",
-  "bicchiere", "forchetta", "coltello", "cucchiaio", "tazza", "bottiglia", "cuffie", "tastiera",
-  "schermo", "caricatore", "telecomando", "videocamera", "microfono", "bussola", "mappa", "scultura",
+      // Oggetti, Musica e Tecnologia
+      "pallone", "bambola", "aquilone", "chitarra", "pianoforte", "tamburo", "violino", "tromba",
+      "flauto", "radio", "televisione", "frigorifero", "forno", "pentola", "padella", "piatto",
+      "bicchiere", "forchetta", "coltello", "cucchiaio", "tazza", "bottiglia", "cuffie", "tastiera",
+      "schermo", "caricatore", "telecomando", "videocamera", "microfono", "bussola", "mappa", "scultura",
 
-  // Cibo e Bevande
-  "sedano", "carota", "patata", "pomodoro", "cipolla", "aglio", "insalata", "mela", "pera",
-  "banana", "arancia", "limone", "fragola", "uva", "anguria", "melone", "ciliegia", "pesca",
-  "ananas", "kiwi", "pane", "pasta", "riso", "pizza", "formaggio", "prosciutto", "uovo", "latte",
-  "burro", "zucchero", "sale", "olio", "miele", "cioccolato", "gelato", "torta", "biscotto",
-  "caramella", "caffè", "tè", "succo", "vino", "birra", "zuppa", "carne", "marmellata", "yogurt",
-  "nocciola", "mandorla", "pistacchio", "fungo", "zucchina", "melanzana", "broccolo",
+      // Cibo e Bevande
+      "sedano", "carota", "patata", "pomodoro", "cipolla", "aglio", "insalata", "mela", "pera",
+      "banana", "arancia", "limone", "fragola", "uva", "anguria", "melone", "ciliegia", "pesca",
+      "ananas", "kiwi", "pane", "pasta", "riso", "pizza", "formaggio", "prosciutto", "uovo", "latte",
+      "burro", "zucchero", "sale", "olio", "miele", "cioccolato", "gelato", "torta", "biscotto",
+      "caramella", "caffè", "tè", "succo", "vino", "birra", "zuppa", "carne", "marmellata", "yogurt",
+      "nocciola", "mandorla", "pistacchio", "fungo", "zucchina", "melanzana", "broccolo",
 
-  // Natura, Spazio ed Elementi
-  "sole", "luna", "stella", "nuvola", "pioggia", "neve", "vento", "fulmine", "arcobaleno",
-  "montagna", "mare", "fiume", "lago", "foresta", "albero", "fiore", "erba", "roccia", "sabbia",
-  "spiaggia", "isola", "vulcano", "deserto", "pianeta", "galassia", "cometa", "prato", "cascata",
-  "foglia", "ramo", "radice", "cespuglio", "ghiacciaio", "grotta",
+      // Natura, Spazio ed Elementi
+      "sole", "luna", "stella", "nuvola", "pioggia", "neve", "vento", "fulmine", "arcobaleno",
+      "montagna", "mare", "fiume", "lago", "foresta", "albero", "fiore", "erba", "roccia", "sabbia",
+      "spiaggia", "isola", "vulcano", "deserto", "pianeta", "galassia", "cometa", "prato", "cascata",
+      "foglia", "ramo", "radice", "cespuglio", "ghiacciaio", "grotta",
 
-  // Luoghi ed Edifici
-  "castello", "chiesa", "scuola", "ospedale", "negozio", "mercato", "parco", "giardino", "strada",
-  "ponte", "torre", "fontana", "stadio", "cinema", "teatro", "museo", "biblioteca", "farmacia",
-  "ristorante", "albergo", "aeroporto", "stazione", "porto", "banca", "palazzo", "supermercato",
-  "palestra", "piscina", "panetteria", "gelateria", "edicola", "faro", "mulino",
+      // Luoghi ed Edifici 
+      "castello", "chiesa", "scuola", "ospedale", "negozio", "mercato", "parco", "giardino", "strada",
+      "ponte", "torre", "fontana", "stadio", "cinema", "teatro", "museo", "biblioteca", "farmacia",
+      "ristorante", "albergo", "aeroporto", "stazione", "porto", "banca", "palazzo", "supermercato",
+      "palestra", "piscina", "panetteria", "gelateria", "edicola", "faro", "mulino",
 
-  // Corpo Umano
-  "occhio", "naso", "bocca", "orecchio", "braccio", "gamba", "cuore", "cervello", "dente", "mano",
-  "piede", "schiena", "collo", "ginocchio", "spalla", "dito",
+      // Corpo Umano
+      "occhio", "naso", "bocca", "orecchio", "braccio", "gamba", "cuore", "cervello", "dente", "mano",
+      "piede", "schiena", "collo", "ginocchio", "spalla", "dito",
 
-  // Professioni e Ruoli
-  "medico", "maestro", "poliziotto", "pompiere", "cuoco", "pittore", "musicista", "astronauta",
-  "scienziato", "attore", "pirata", "cavaliere"
-];
+      // Professioni e Ruoli
+      "medico", "maestro", "poliziotto", "pompiere", "cuoco", "pittore", "musicista", "astronauta",
+      "scienziato", "attore", "pirata", "cavaliere"
+    ];
+
+    function hashStringToSeed(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash |= 0;
+      }
+      return hash;
+    }
+
+    function getDateKey() {
+      const oggi = new Date();
+      const anno = oggi.getFullYear();
+      const mese = String(oggi.getMonth() + 1).padStart(2, '0');
+      const giorno = String(oggi.getDate()).padStart(2, '0');
+      return `${anno}-${mese}-${giorno}`;
+    }
+
+    function mulberry32(seed) {
+      return function () {
+        seed |= 0;
+        seed = (seed + 0x6D2B79F5) | 0;
+        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function generaBestemmiaDelGiorno() {
+      const seed = hashStringToSeed(getDateKey());
+      const rng = mulberry32(seed);
+      const indiceSoggetto = Math.floor(rng() * soggetti.length);
+      const indiceElemento = Math.floor(rng() * elementi.length);
+      return {
+        soggetto: soggetti[indiceSoggetto],
+        elemento: elementi[indiceElemento]
+      };
+    }
 
     function randomizza() {
       const soggettoScelto = soggetti[Math.floor(Math.random() * soggetti.length)];
@@ -117,7 +203,26 @@
 
       document.getElementById("soggetto").textContent = soggettoScelto;
       document.getElementById("elemento").textContent = elementoScelto;
+
+      gsap.fromTo("#soggetto, #elemento",
+        { scale: 0.9, opacity: 0.6 },
+        { scale: 1, opacity: 1, duration: 0.35, ease: "back.out(2)" }
+      );
     }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const bestemmiaGiorno = generaBestemmiaDelGiorno();
+      document.getElementById('soggetto-giorno').textContent = bestemmiaGiorno.soggetto;
+      document.getElementById('elemento-giorno').textContent = bestemmiaGiorno.elemento;
+
+      gsap.from(".card", {
+        opacity: 0,
+        y: 24,
+        duration: 0.6,
+        stagger: 0.12,
+        ease: "power2.out"
+      });
+    });
   </script>
 </body>
 

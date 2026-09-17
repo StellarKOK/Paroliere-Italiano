@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <title>Paroliere Italiano</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;900&family=Manrope:wght@500;700;800&display=swap');
+
+        :root {
+            --ink: #063a2b;
+            --tier-color: #cbd5e1;
+            --tier-glow: rgba(203, 213, 225, 0.55);
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .display {
+            font-family: 'Fraunces', serif;
+        }
+
+        .glass-text {
+            text-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .card {
+            background: linear-gradient(160deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04));
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            position: relative;
+            transition: box-shadow 0.5s ease, border-color 0.5s ease;
+        }
+
+        .divider {
+            background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+        }
+
+        /* ---------- RIGHE ALLINEATE TRA LE DUE CARD ---------- */
+        /* Ogni card usa esattamente le stesse altezze di riga, così le due
+       colonne restano perfettamente allineate indipendentemente dalla
+       lunghezza del testo che contengono. */
+        .row-label {
+            height: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .row-title {
+            height: clamp(4.5rem, 9vw, 6rem);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .row-words {
+            height: clamp(3.75rem, 7vw, 4.75rem);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            position: relative;
+        }
+
+        .row-footer {
+            height: clamp(3.25rem, 6vw, 4rem);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        /* ---------- CHIP A GRANDEZZA FISSA ---------- */
+        /* Larghezza in "ch" cosi la dimensione scala col font-size ma resta
+       sempre sufficiente per la parola più lunga, senza mai ridimensionarsi
+       quando cambia la parola mostrata. */
+        .chip {
+            border-radius: 1rem;
+            background: rgba(6, 58, 43, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: white;
+            font-weight: 800;
+            font-family: 'Manrope', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-sizing: border-box;
+            padding: 0 0.75rem;
+            font-size: clamp(1rem, 2.3vw, 1.5rem);
+            height: clamp(3rem, 6vw, 3.75rem);
+            white-space: nowrap;
+            overflow: hidden;
+            transition: box-shadow 0.4s ease;
+        }
+
+        .chip-soggetto {
+            width: 9.5ch;
+        }
+
+        .chip-elemento {
+            width: 13.5ch;
+        }
+
+        /* ---------- REEL (rullo stile slot machine), sopra la chip ---------- */
+        .reel.chip {
+            position: relative;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .reel-mask {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 3;
+            background: linear-gradient(to bottom,
+                    rgba(4, 36, 27, 0.92) 0%,
+                    rgba(4, 36, 27, 0) 32%,
+                    rgba(4, 36, 27, 0) 68%,
+                    rgba(4, 36, 27, 0.92) 100%);
+        }
+
+        .reel-centerline {
+            position: absolute;
+            left: 8%;
+            right: 8%;
+            top: 50%;
+            height: 2px;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.22);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .reel-strip {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            will-change: transform, filter;
+        }
+
+        .reel-item {
+            height: clamp(3rem, 6vw, 3.75rem);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: white;
+            font-size: clamp(1rem, 2.3vw, 1.5rem);
+            line-height: 1;
+            padding: 0 0.4rem;
+            text-align: center;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
+
+        .reel-item span {
+            display: inline-block;
+            transform: translateY(0.09em);
+            /* correzione ottica: allinea il testo alla linea centrale */
+        }
+
+        /* ---------- BADGE RARITÀ (fluttuante, non altera l'allineamento) ---------- */
+        #rarityWrap {
+            position: absolute;
+            top: -1.55rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .tier-badge {
+            color: var(--tier-color);
+            text-shadow: 0 0 12px var(--tier-glow), 0 0 30px var(--tier-glow);
+            font-weight: 900;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+        }
+
+        /* ---------- LAYERS DI EFFETTI (fixed, sopra tutta la pagina) ---------- */
+        #particleLayer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 60;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 9999px;
+            will-change: transform, opacity;
+        }
+
+        .spark {
+            position: absolute;
+            will-change: transform, opacity;
+            font-weight: 900;
+        }
+
+        .ray {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 70vh;
+            transform-origin: top center;
+            opacity: 0;
+        }
+
+        #flashOverlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 55;
+            opacity: 0;
+            mix-blend-mode: screen;
+        }
+
+        #dimOverlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 20;
+            background: radial-gradient(circle at 50% 45%, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.92) 80%);
+            opacity: 0;
+        }
+
+        .shockring {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            border-radius: 9999px;
+            border: 4px solid white;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 45;
+        }
+
+        #bigTitle {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.3);
+            z-index: 65;
+            font-family: 'Fraunces', serif;
+            font-weight: 900;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            opacity: 0;
+            pointer-events: none;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        /* ---------- TOGGLE ALWAYS ANIMATION ---------- */
+        .toggle-checkbox:checked+.toggle-label .toggle-dot {
+            transform: translateX(100%);
+            background-color: #facc15;
+        }
+
+        .toggle-checkbox:checked+.toggle-label {
+            background-color: rgba(250, 204, 21, 0.35);
+        }
+
+        #randomCard {
+            z-index: 30;
+        }
+
+        #giornoCard {
+            z-index: 30;
+        }
+    </style>
+</head>
+
+<body
+    class="w-full min-h-screen bg-gradient-to-br from-emerald-400 via-emerald-600 to-emerald-950 flex items-center justify-center p-6 relative">
+
+    <div id="dimOverlay"></div>
+    <div id="flashOverlay"></div>
+    <div id="particleLayer"></div>
+    <div id="bigTitle"></div>
+
+    <!-- TOGGLE ALWAYS ANIMATION -->
+    <div
+        class="fixed top-4 right-4 z-[70] flex items-center gap-x-3 bg-black/25 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 shadow-lg">
+        <span class="text-white text-xs sm:text-sm font-bold tracking-wide">Always Animation</span>
+        <div class="relative">
+            <input type="checkbox" id="alwaysAnim" class="toggle-checkbox absolute w-0 h-0 opacity-0" />
+            <label for="alwaysAnim"
+                class="toggle-label flex items-center w-12 h-6 rounded-full bg-white/20 cursor-pointer transition-colors duration-300 px-0.5">
+                <span
+                    class="toggle-dot block w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-300"></span>
+            </label>
+        </div>
+    </div>
+
+    <div
+        class="w-full max-w-5xl flex flex-col lg:flex-row items-stretch gap-0 rounded-[2rem] overflow-hidden shadow-2xl">
+
+        <!-- DEL GIORNO -->
+        <div id="giornoCard" class="card flex-1 flex flex-col items-center justify-center gap-y-7 px-8 py-12 sm:px-12">
+            <div class="row-label">
+                <span class="uppercase tracking-[0.2em] text-[11px] font-bold text-emerald-100/70">Oggi</span>
+            </div>
+
+            <div class="row-title">
+                <h1 class="display text-3xl sm:text-4xl font-bold text-white leading-tight glass-text">
+                    Bestemmia del giorno
+                </h1>
+            </div>
+
+            <div class="row-words">
+                <h2 id="soggetto-giorno" class="chip chip-soggetto">&nbsp;</h2>
+                <h2 id="elemento-giorno" class="chip chip-elemento">&nbsp;</h2>
+            </div>
+
+            <div class="row-footer">
+                <p class="text-emerald-100/60 text-xs max-w-[220px]">La più bella bestemmia di Oggi</p>
+            </div>
+        </div>
+
+        <!-- DIVIDER -->
+        <div class="hidden lg:block w-px divider"></div>
+        <div class="block lg:hidden h-px divider"></div>
+
+        <!-- RANDOMIZZATORE -->
+        <div id="randomCard" class="card flex-1 flex flex-col items-center justify-center gap-y-7 px-8 py-12 sm:px-12">
+            <div class="row-label">
+                <span class="uppercase tracking-[0.2em] text-[11px] font-bold text-emerald-100/70">A piacere</span>
+            </div>
+
+            <div class="row-title">
+                <h1 id="titolo-random"
+                    class="display text-3xl sm:text-4xl font-bold text-white leading-tight glass-text">
+                    Bestemmiatore
+                </h1>
+            </div>
+
+            <div id="reelsRowRandom" class="row-words">
+                <div id="rarityWrap">
+                    <span id="rarityBadge" class="tier-badge"></span>
+                </div>
+                <div id="soggetto" class="chip chip-soggetto reel">
+                    <div class="reel-strip"></div>
+                    <div class="reel-centerline"></div>
+                    <div class="reel-mask"></div>
+                </div>
+                <div id="elemento" class="chip chip-elemento reel">
+                    <div class="reel-strip"></div>
+                    <div class="reel-centerline"></div>
+                    <div class="reel-mask"></div>
+                </div>
+            </div>
+
+            <div class="row-footer">
+                <button id="spinBtn" type="button" onclick="randomizza()"
+                    class="fade-dim bg-white text-emerald-900 font-extrabold text-sm sm:text-base px-8 py-3 rounded-full shadow-lg hover:bg-emerald-50 hover:scale-105 active:scale-95 transition-all duration-200">
+                    Randomizza
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const soggetti = ["Dio", "Madonna", "Gesù"];
+
+        const elementi = [
+            // Animali
+            "cane", "gatto", "cavallo", "mucca", "maiale", "pecora", "capra", "gallina", "gallo", "papera",
+            "anatra", "coniglio", "topo", "leone", "tigre", "elefante", "giraffa", "scimmia", "orso", "lupo",
+            "volpe", "cervo", "canguro", "zebra", "rinoceronte", "ippopotamo", "delfino", "balena", "squalo",
+            "pesce", "polpo", "granchio", "tartaruga", "serpente", "coccodrillo", "lucertola", "rana",
+            "farfalla", "ape", "formica", "ragno", "zanzara", "mosca", "scarafaggio", "uccello", "aquila",
+            "gufo", "pappagallo", "pinguino", "struzzo", "pipistrello", "castoro", "scoiattolo", "riccio",
+            "medusa", "fenicottero", "corvo", "piccione", "gabbiano", "cigno", "leopardo", "panda", "koala",
+            "camaleonte", "gorilla", "orca", "tricheco", "lince",
+
+            // Arredamento e Casa
+            "tavolo", "sedia", "divano", "letto", "armadio", "specchio", "lampada", "finestra", "porta",
+            "chiave", "orologio", "telefono", "computer", "libro", "penna", "matita", "quaderno", "zaino",
+            "ombrello", "cappello", "scarpa", "camicia", "pantaloni", "cintura", "guanto", "sciarpa", "borsa",
+            "valigia", "vasca", "lavandino", "cuscino", "coperta", "tappeto", "mensola", "vaso", "quadro",
+            "spazzolino", "asciugamano", "pettine", "sapone", "forbici", "martello", "cacciavite", "chiodo",
+            "torcia", "sveglia", "calzino", "giacca", "cappotto", "occhiali", "cravatta", "costume", "gonna",
+
+            // Veicoli e Trasporti
+            "bicicletta", "automobile", "treno", "aereo", "nave", "barca", "camion", "moto", "autobus",
+            "elicottero", "razzo", "sottomarino", "tram", "trattore", "scooter", "funivia", "mongolfiera",
+
+            // Oggetti, Musica e Tecnologia
+            "pallone", "bambola", "aquilone", "chitarra", "pianoforte", "tamburo", "violino", "tromba",
+            "flauto", "radio", "televisione", "frigorifero", "forno", "pentola", "padella", "piatto",
+            "bicchiere", "forchetta", "coltello", "cucchiaio", "tazza", "bottiglia", "cuffie", "tastiera",
+            "schermo", "caricatore", "telecomando", "videocamera", "microfono", "bussola", "mappa", "scultura",
+
+            // Cibo e Bevande
+            "sedano", "carota", "patata", "pomodoro", "cipolla", "aglio", "insalata", "mela", "pera",
+            "banana", "arancia", "limone", "fragola", "uva", "anguria", "melone", "ciliegia", "pesca",
+            "ananas", "kiwi", "pane", "pasta", "riso", "pizza", "formaggio", "prosciutto", "uovo", "latte",
+            "burro", "zucchero", "sale", "olio", "miele", "cioccolato", "gelato", "torta", "biscotto",
+            "caramella", "caffè", "tè", "succo", "vino", "birra", "zuppa", "carne", "marmellata", "yogurt",
+            "nocciola", "mandorla", "pistacchio", "fungo", "zucchina", "melanzana", "broccolo",
+
+            // Natura, Spazio ed Elementi
+            "sole", "luna", "stella", "nuvola", "pioggia", "neve", "vento", "fulmine", "arcobaleno",
+            "montagna", "mare", "fiume", "lago", "foresta", "albero", "fiore", "erba", "roccia", "sabbia",
+            "spiaggia", "isola", "vulcano", "deserto", "pianeta", "galassia", "cometa", "prato", "cascata",
+            "foglia", "ramo", "radice", "cespuglio", "ghiacciaio", "grotta",
+
+            // Luoghi ed Edifici
+            "castello", "chiesa", "scuola", "ospedale", "negozio", "mercato", "parco", "giardino", "strada",
+            "ponte", "torre", "fontana", "stadio", "cinema", "teatro", "museo", "biblioteca", "farmacia",
+            "ristorante", "albergo", "aeroporto", "stazione", "porto", "banca", "palazzo", "supermercato",
+            "palestra", "piscina", "panetteria", "gelateria", "edicola", "faro", "mulino",
+
+            // Corpo Umano
+            "occhio", "naso", "bocca", "orecchio", "braccio", "gamba", "cuore", "cervello", "dente", "mano",
+            "piede", "schiena", "collo", "ginocchio", "spalla", "dito",
+
+            // Professioni e Ruoli
+            "medico", "maestro", "poliziotto", "pompiere", "cuoco", "pittore", "musicista", "astronauta",
+            "scienziato", "attore", "pirata", "cavaliere"
+        ];
+
+        // ================= BESTEMMIA DEL GIORNO (deterministica, invariata) =================
+        function hashStringToSeed(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = (hash << 5) - hash + char;
+                hash |= 0;
+            }
+            return hash;
+        }
+
+        function getDateKey() {
+            const oggi = new Date();
+            const anno = oggi.getFullYear();
+            const mese = String(oggi.getMonth() + 1).padStart(2, '0');
+            const giorno = String(oggi.getDate()).padStart(2, '0');
+            return `${anno}-${mese}-${giorno}`;
+        }
+
+        function mulberry32(seed) {
+            return function () {
+                seed |= 0;
+                seed = (seed + 0x6D2B79F5) | 0;
+                let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+        }
+
+        function generaBestemmiaDelGiorno() {
+            const seed = hashStringToSeed(getDateKey());
+            const rng = mulberry32(seed);
+            const indiceSoggetto = Math.floor(rng() * soggetti.length);
+            const indiceElemento = Math.floor(rng() * elementi.length);
+            return {
+                soggetto: soggetti[indiceSoggetto],
+                elemento: elementi[indiceElemento]
+            };
+        }
+
+        // ================= SISTEMA DI RARITÀ (per il randomizzatore "A piacere") =================
+        const TIERS = [
+            { name: "Comune", weight: 50, color: "#cbd5e1", glow: "rgba(203, 213, 225, 0.55)", big: false },
+            { name: "Non Comune", weight: 27, color: "#34d399", glow: "rgba(52, 211, 153, 0.55)", big: false },
+            { name: "Raro", weight: 15, color: "#38bdf8", glow: "rgba(56, 189, 248, 0.65)", big: true },
+            { name: "Epico", weight: 6, color: "#c084fc", glow: "rgba(192, 132, 252, 0.75)", big: true },
+            { name: "Leggendario", weight: 1.7, color: "#fbbf24", glow: "rgba(251, 191, 36, 0.85)", big: true },
+            { name: "Mitico", weight: 0.3, color: "#fb7185", glow: "rgba(251, 113, 133, 0.95)", big: true },
+        ];
+
+        function shuffle(arr) {
+            const a = arr.slice();
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        const shuffledElementi = shuffle(elementi);
+        const totalElementi = shuffledElementi.length;
+        const tierPools = {};
+        let cursor = 0;
+        TIERS.forEach((t, idx) => {
+            let count;
+            if (idx === TIERS.length - 1) {
+                count = totalElementi - cursor;
+            } else {
+                count = Math.max(1, Math.round((t.weight / 100) * totalElementi));
+            }
+            tierPools[t.name] = shuffledElementi.slice(cursor, cursor + count);
+            cursor += count;
+        });
+        TIERS.forEach(t => {
+            if (tierPools[t.name].length === 0) {
+                tierPools[t.name] = [tierPools["Comune"][0] || elementi[0]];
+            }
+        });
+
+        function pickTier() {
+            const totalWeight = TIERS.reduce((s, t) => s + t.weight, 0);
+            let r = Math.random() * totalWeight;
+            for (const t of TIERS) {
+                if (r < t.weight) return t;
+                r -= t.weight;
+            }
+            return TIERS[0];
+        }
+
+        function pickWordForTier(tier) {
+            const pool = tierPools[tier.name];
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        // ================= STATO / RIFERIMENTI =================
+        let spinning = false;
+        const soggettoEl = document.getElementById("soggetto");
+        const elementoEl = document.getElementById("elemento");
+        const rarityWrap = document.getElementById("rarityWrap");
+        const rarityBadge = document.getElementById("rarityBadge");
+        const randomCard = document.getElementById("randomCard");
+        const spinBtn = document.getElementById("spinBtn");
+        const alwaysAnimToggle = document.getElementById("alwaysAnim");
+        const dimOverlay = document.getElementById("dimOverlay");
+        const bigTitle = document.getElementById("bigTitle");
+        const appTitle = document.getElementById("titolo-random");
+        const reelsRow = document.getElementById("reelsRowRandom");
+
+        function setTierVisuals(tier) {
+            document.documentElement.style.setProperty("--tier-color", tier.color);
+            document.documentElement.style.setProperty("--tier-glow", tier.glow);
+            randomCard.style.boxShadow = `0 0 60px ${tier.glow}, 0 25px 60px rgba(0,0,0,0.35)`;
+            randomCard.style.borderColor = tier.color;
+            [soggettoEl, elementoEl].forEach(reel => {
+                reel.style.boxShadow = `0 0 20px ${tier.glow}`;
+            });
+        }
+
+        function resetTierVisuals() {
+            document.documentElement.style.setProperty("--tier-color", "#cbd5e1");
+            document.documentElement.style.setProperty("--tier-glow", "rgba(203,213,225,0.55)");
+            randomCard.style.boxShadow = "none";
+            randomCard.style.borderColor = "rgba(255,255,255,0.18)";
+            [soggettoEl, elementoEl].forEach(reel => {
+                reel.style.boxShadow = "none";
+            });
+        }
+
+        // ================= RULLO STILE SLOT MACHINE =================
+        // Costruisce un rullo con N parole casuali di "riempimento" seguite dal
+        // valore finale, poi lo trascina verso l'alto per simulare la rotazione
+        // di una vera slot machine: accelerazione, crociera veloce con motion
+        // blur, decelerazione e uno SNAP secco finale (nessun rimbalzo elastico).
+        function spinReel(reelEl, pool, finalValue, durationMs, fillCount) {
+            return new Promise(resolve => {
+                const strip = reelEl.querySelector(".reel-strip");
+                strip.innerHTML = "";
+                gsap.set(strip, { y: 0, filter: "blur(0px)" });
+
+                const items = [];
+                for (let i = 0; i < fillCount; i++) {
+                    items.push(pool[Math.floor(Math.random() * pool.length)]);
+                }
+                items.push(finalValue);
+
+                items.forEach(word => {
+                    const div = document.createElement("div");
+                    div.className = "reel-item";
+                    const span = document.createElement("span");
+                    span.textContent = word;
+                    div.appendChild(span);
+                    strip.appendChild(div);
+                });
+
+                const itemHeight = strip.children[0].offsetHeight;
+                const targetY = -(itemHeight * (items.length - 1));
+                const preSnapY = targetY + itemHeight * 0.9;
+
+                const tl = gsap.timeline({ onComplete: resolve });
+
+                tl.to(strip, {
+                    y: preSnapY * 0.5,
+                    duration: durationMs * 0.00035,
+                    ease: "power1.in",
+                    filter: "blur(3px)"
+                });
+                tl.to(strip, {
+                    y: preSnapY * 0.88,
+                    duration: durationMs * 0.00055,
+                    ease: "none",
+                    filter: "blur(6px)"
+                });
+                tl.to(strip, {
+                    y: preSnapY,
+                    duration: durationMs * 0.00075,
+                    ease: "power3.out",
+                    filter: "blur(0.5px)"
+                });
+                tl.to(strip, {
+                    y: targetY,
+                    duration: 0.16,
+                    ease: "power4.out",
+                    filter: "blur(0px)"
+                });
+                tl.to(reelEl, { scaleY: 0.96, duration: 0.05, ease: "power1.out" }, "-=0.02");
+                tl.to(reelEl, { scaleY: 1, duration: 0.12, ease: "power2.out" });
+            });
+        }
+
+        // ================= EFFETTI SPECIALI =================
+        function spawnParticles(count, colors) {
+            const layer = document.getElementById("particleLayer");
+            const cx = window.innerWidth / 2;
+            const cy = window.innerHeight / 2;
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement("div");
+                p.className = "particle";
+                const size = 4 + Math.random() * 12;
+                p.style.width = size + "px";
+                p.style.height = size + "px";
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                p.style.background = color;
+                p.style.left = cx + "px";
+                p.style.top = cy + "px";
+                p.style.boxShadow = `0 0 10px 3px ${color}`;
+                layer.appendChild(p);
+
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 200 + Math.random() * (window.innerWidth * 0.65);
+                const dx = Math.cos(angle) * dist;
+                const dy = Math.sin(angle) * dist - 60;
+
+                gsap.timeline({ onComplete: () => p.remove() })
+                    .to(p, {
+                        x: dx, y: dy, opacity: 0,
+                        duration: 1.2 + Math.random() * 1.1,
+                        ease: "power2.out"
+                    }, 0)
+                    .to(p, {
+                        rotation: Math.random() * 720 - 360,
+                        duration: 1.8,
+                        ease: "power1.out"
+                    }, 0);
+            }
+        }
+
+        function spawnSparks(count, symbols) {
+            const layer = document.getElementById("particleLayer");
+            const cx = window.innerWidth / 2;
+            const cy = window.innerHeight / 2;
+            for (let i = 0; i < count; i++) {
+                const s = document.createElement("div");
+                s.className = "spark";
+                s.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                s.style.fontSize = (18 + Math.random() * 28) + "px";
+                s.style.left = cx + "px";
+                s.style.top = cy + "px";
+                layer.appendChild(s);
+
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 120 + Math.random() * (window.innerWidth * 0.55);
+                const dx = Math.cos(angle) * dist;
+                const dy = Math.sin(angle) * dist;
+
+                gsap.timeline({ onComplete: () => s.remove() })
+                    .fromTo(s, { scale: 0, opacity: 1 }, { scale: 1.4, duration: 0.25, ease: "back.out(3)" }, 0)
+                    .to(s, { x: dx, y: dy, rotation: Math.random() * 400 - 200, duration: 1.6 + Math.random(), ease: "power2.out" }, 0)
+                    .to(s, { opacity: 0, duration: 0.6, ease: "power1.in" }, ">-0.5");
+            }
+        }
+
+        function spawnRays(color, count) {
+            const layer = document.getElementById("particleLayer");
+            for (let i = 0; i < count; i++) {
+                const ray = document.createElement("div");
+                ray.className = "ray";
+                ray.style.background = `linear-gradient(to bottom, ${color}, transparent)`;
+                const angle = (360 / count) * i;
+                ray.style.transform = `translate(-50%, -100%) rotate(${angle}deg)`;
+                layer.appendChild(ray);
+                gsap.timeline({ onComplete: () => ray.remove() })
+                    .to(ray, { opacity: 0.95, duration: 0.15 })
+                    .to(ray, { opacity: 0, scaleY: 1.8, duration: 1.3, ease: "power2.out" });
+            }
+        }
+
+        function screenFlash(color, times) {
+            const overlay = document.getElementById("flashOverlay");
+            const tl = gsap.timeline();
+            overlay.style.background = `radial-gradient(circle at 50% 45%, ${color}, transparent 70%)`;
+            for (let i = 0; i < times; i++) {
+                tl.set(overlay, { opacity: 0 })
+                    .to(overlay, { opacity: i === 0 ? 1 : 0.7, duration: 0.08 })
+                    .to(overlay, { opacity: 0, duration: i === times - 1 ? 1.0 : 0.15, ease: "power2.out" });
+            }
+        }
+
+        function shockwave(color, delay) {
+            const ring = document.createElement("div");
+            ring.className = "shockring";
+            ring.style.borderColor = color;
+            document.body.appendChild(ring);
+            gsap.timeline({ delay: delay || 0, onComplete: () => ring.remove() })
+                .set(ring, { width: 10, height: 10, opacity: 0.95 })
+                .to(ring, { width: "220vw", height: "220vw", opacity: 0, duration: 1.3, ease: "power2.out" });
+        }
+
+        function shakeScreen(intensity, count) {
+            const tl = gsap.timeline();
+            for (let i = 0; i < count; i++) {
+                tl.to("body", {
+                    x: (Math.random() - 0.5) * intensity,
+                    y: (Math.random() - 0.5) * intensity,
+                    rotation: (Math.random() - 0.5) * (intensity * 0.03),
+                    duration: 0.045
+                });
+            }
+            tl.to("body", { x: 0, y: 0, rotation: 0, duration: 0.15, ease: "power2.out" });
+        }
+
+        function pulseBorder(color, glow, repeats) {
+            gsap.to(randomCard, {
+                boxShadow: `0 0 110px ${glow}, 0 25px 80px rgba(0,0,0,0.5)`,
+                duration: 0.35,
+                yoyo: true,
+                repeat: repeats,
+                ease: "sine.inOut"
+            });
+        }
+
+        // ================= CELEBRAZIONE ESPLOSIVA (rarità alte / always animation) =================
+        function bigCelebration(tier) {
+            const isMythic = tier.name === "Mitico";
+            const isLegendary = tier.name === "Leggendario";
+            const intensity = isMythic ? 3 : isLegendary ? 2.4 : 1.6;
+
+            gsap.timeline()
+                .to(dimOverlay, { opacity: 0.96, duration: 0.12, ease: "power2.in" })
+                .to(dimOverlay, { opacity: 0, duration: 0.35, ease: "power2.out" }, "+=0.05")
+                .to(dimOverlay, { opacity: 0.18, duration: 0.9, ease: "sine.inOut" }, "+=0.1")
+                .to(dimOverlay, { opacity: 0, duration: 0.7, ease: "power1.out" }, "+=0.6")
+                .to([appTitle, spinBtn], { opacity: 1, duration: 0.5, ease: "power2.out" }, "-=0.9");
+
+            bigTitle.textContent = isMythic ? "★ MITICO ★" : tier.name.toUpperCase() + "!";
+            bigTitle.style.color = tier.color;
+            bigTitle.style.textShadow = `0 0 30px ${tier.color}, 0 0 70px ${tier.glow}, 0 0 120px ${tier.glow}`;
+            bigTitle.style.fontSize = isMythic ? "clamp(2.5rem, 11vw, 7rem)" : "clamp(2rem, 8vw, 5rem)";
+            gsap.timeline()
+                .set(bigTitle, { opacity: 0, scale: 0.2, rotate: -6 })
+                .to(bigTitle, { opacity: 1, scale: 1.15, rotate: 0, duration: 0.35, ease: "back.out(4)" })
+                .to(bigTitle, { scale: 1, duration: 0.2 })
+                .to(bigTitle, { y: -40, opacity: 0, duration: 0.7, ease: "power1.in" }, "+=0.9");
+
+            screenFlash("#ffffff", 1);
+            setTimeout(() => screenFlash(tier.glow, isMythic ? 3 : 2), 90);
+
+            shockwave("#ffffff", 0);
+            shockwave(tier.color, 0.1);
+            shockwave(tier.color, 0.24);
+            if (isMythic || isLegendary) shockwave("#ffffff", 0.38);
+
+            spawnRays(tier.color, isMythic ? 30 : isLegendary ? 22 : 14);
+
+            const particleCount = isMythic ? 220 : isLegendary ? 150 : 95;
+            spawnParticles(particleCount, [tier.color, "#ffffff"]);
+            setTimeout(() => spawnParticles(Math.round(particleCount * 0.55), [tier.color, "#ffffff"]), 180);
+            if (isMythic || isLegendary) {
+                setTimeout(() => spawnParticles(Math.round(particleCount * 0.45), [tier.color, "#ffffff"]), 380);
+            }
+            if (isMythic) {
+                setTimeout(() => spawnParticles(100, [tier.color, "#ffffff"]), 600);
+                spawnSparks(20, ["✦", "★", "✧", "💥", "🔥"]);
+            } else if (isLegendary) {
+                spawnSparks(12, ["✦", "★", "✧"]);
+            } else {
+                spawnSparks(6, ["✦", "✧"]);
+            }
+
+            shakeScreen(7 * intensity, isMythic ? 18 : isLegendary ? 14 : 10);
+            pulseBorder(tier.color, tier.glow, isMythic ? 5 : isLegendary ? 4 : 3);
+
+            gsap.timeline()
+                .fromTo(randomCard, { scale: 1 }, { scale: 1 + 0.045 * intensity, duration: 0.14, ease: "power3.out" })
+                .to(randomCard, { scale: 1, duration: 0.35, ease: "power4.out" });
+
+            gsap.fromTo(rarityBadge,
+                { scale: 0.3, opacity: 0, rotate: -10 },
+                {
+                    scale: 1.2, opacity: 1, rotate: 0, duration: 0.4, ease: "back.out(4)",
+                    onComplete: () => gsap.to(rarityBadge, { scale: 1, duration: 0.3 })
+                });
+        }
+
+        function smallReveal() {
+            gsap.fromTo(rarityBadge, { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "power2.out" });
+            gsap.to(dimOverlay, { opacity: 0, duration: 0.5, ease: "power2.out" });
+            gsap.to([appTitle, spinBtn], { opacity: 1, duration: 0.4, ease: "power2.out" });
+        }
+
+        // ================= FUNZIONE PRINCIPALE DEL RANDOMIZZATORE =================
+        async function randomizza() {
+            if (spinning) return;
+            spinning = true;
+            spinBtn.disabled = true;
+            spinBtn.classList.add("opacity-60", "cursor-not-allowed");
+
+            gsap.to(rarityWrap, { opacity: 0, duration: 0.15 });
+            resetTierVisuals();
+            gsap.set(bigTitle, { opacity: 0 });
+
+            // Oscura subito la scena al click: restano visibili solo i rulli,
+            // titolo e bottone sfumano via.
+            gsap.timeline()
+                .to(dimOverlay, { opacity: 0.88, duration: 0.35, ease: "power2.in" }, 0)
+                .to([appTitle, spinBtn], { opacity: 0.08, duration: 0.3, ease: "power2.in" }, 0)
+                .to(reelsRow, { filter: "drop-shadow(0 0 30px rgba(255,255,255,0.25))", duration: 0.35 }, 0);
+
+            const tier = pickTier();
+            const soggettoScelto = soggetti[Math.floor(Math.random() * soggetti.length)];
+            const elementoScelto = pickWordForTier(tier);
+
+            const duration = 1900 + Math.random() * 500;
+
+            await Promise.all([
+                spinReel(soggettoEl, soggetti, soggettoScelto, duration * 0.8, 18),
+                spinReel(elementoEl, elementi, elementoScelto, duration, 30)
+            ]);
+
+            gsap.to(reelsRow, { filter: "drop-shadow(0 0 0 rgba(255,255,255,0))", duration: 0.3 });
+
+            setTierVisuals(tier);
+            rarityBadge.textContent = tier.name;
+            gsap.to(rarityWrap, { opacity: 1, duration: 0.2 });
+
+            const forceAlways = alwaysAnimToggle.checked;
+
+            if (tier.big || forceAlways) {
+                bigCelebration(tier);
+            } else {
+                smallReveal();
+            }
+
+            spinning = false;
+            spinBtn.disabled = false;
+            spinBtn.classList.remove("opacity-60", "cursor-not-allowed");
+        }
+
+        // ================= INIZIALIZZAZIONE =================
+        (function initReels() {
+            [[soggettoEl, "Benvenuto"], [elementoEl, "Bestemmiatore"]].forEach(([reel, word]) => {
+                const strip = reel.querySelector(".reel-strip");
+                const div = document.createElement("div");
+                div.className = "reel-item";
+                const span = document.createElement("span");
+                span.textContent = word;
+                div.appendChild(span);
+                strip.appendChild(div);
+            });
+        })();
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const bestemmiaGiorno = generaBestemmiaDelGiorno();
+            document.getElementById('soggetto-giorno').textContent = bestemmiaGiorno.soggetto;
+            document.getElementById('elemento-giorno').textContent = bestemmiaGiorno.elemento;
+
+            gsap.from(".card", {
+                opacity: 0,
+                y: 24,
+                duration: 0.6,
+                stagger: 0.12,
+                ease: "power2.out"
+            });
+        });
+    </script>
+</body>
+
+</html>
